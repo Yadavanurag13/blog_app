@@ -15,7 +15,7 @@ class RegisterView(APIView):
             if not serializer.is_valid():
                 return Response({
                     'data': serializer.errors,
-                    'message': "Something went wrong"
+                    'message': "Something went wrong while registering user"
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             serializer.save()
