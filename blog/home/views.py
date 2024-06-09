@@ -7,6 +7,39 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import *
 from django.db.models import Q
+from django.core.paginator import Paginator
+
+class PublicView(APIView):
+    def get(self, request):
+        try:
+            search = request.GET.get('search', '')
+
+            page_number = request.GET.get('page', '1')
+
+            # Filter blogs by user and apply search filter if exists
+            blogs = Blog.objects.all()
+
+            if search:
+                blogs = blogs.filter(Q(title__icontains=search) | Q(content__icontains=search))
+
+            paginator = Paginator(blogs, 10)
+
+            page = paginator.get_page(page_number)
+
+            # Serialize the page object
+            serializer = BlogSerializer(page.object_list, many=True)
+
+
+            return Response({
+                'data': serializer.data,
+                'message': "Blog fetched successfully"
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'data': {},
+                'message': 'Something went wrong in try block'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class BlogView(APIView):
     permission_classes = [IsAuthenticated]
